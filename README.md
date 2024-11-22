@@ -1,2 +1,2 @@
 # java-shareit
-Template repository for Shareit project.
+Спринт 14. Реализация User и Item
