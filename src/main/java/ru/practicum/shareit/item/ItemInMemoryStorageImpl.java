@@ -7,23 +7,21 @@ import java.util.*;
 
 @Repository
 public class ItemInMemoryStorageImpl implements ItemStorage {
-    private final Map<Long, Item> items = new HashMap<>();
+    private final Map<Long, Item> items = new HashMap<>(); // хранение вещей
+    private final Map<Long, Set<Item>> userItems = new HashMap<>(); // хранение списка тех же вещей по юзерам
     private long id = 0L;
 
     @Override
     public void createItem(Item item) {
         item.setId(getNextId());
+        userItems.computeIfAbsent(item.getOwner().getId(), k -> new HashSet<>()).add(item);
         items.put(item.getId(), item);
     }
 
     @Override
     public void updateItem(Item item) {
+        userItems.get(item.getOwner().getId()).add(item);
         items.replace(item.getId(), item);
-    }
-
-    @Override
-    public void deleteItem(long userId) {
-
     }
 
     @Override
@@ -33,15 +31,14 @@ public class ItemInMemoryStorageImpl implements ItemStorage {
 
     @Override
     public List<Item> findItemsByUserId(long userId) {
-        return items.values().stream().filter(item -> item.getOwner().getId() == userId).toList();
+        return userItems.getOrDefault(userId, Set.of()).stream().toList();
     }
 
     @Override
-    public List<Item> findByRequest(String textToFind, Long userId) {
+    public List<Item> findByRequest(String textToFind) {
         return items.values().stream()
                 .filter(item -> (item.getName().toLowerCase().contains(textToFind.toLowerCase()) ||
                         item.getDescription().toLowerCase().contains(textToFind.toLowerCase())) &&
-                        (userId == null || Objects.equals(item.getOwner().getId(), userId)) &&
                         item.getAvailable())
                 .toList();
     }

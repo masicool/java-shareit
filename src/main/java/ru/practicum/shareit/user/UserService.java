@@ -7,25 +7,28 @@ import ru.practicum.shareit.exception.type.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class UserService {
     private final UserStorage userStorage;
 
-    public UserDto createUser(User user) {
-        checkDuplicateEmail(user.getEmail());
+    public UserDto createUser(UserDto userDto) {
+        checkDuplicateEmail(userDto.getEmail());
+        User user = UserMapper.toUser(userDto);
         userStorage.createUser(user);
         return UserMapper.toUserDto(user);
     }
 
-    public UserDto updateUser(long userId, User user) {
-        userStorage.findUserById(userId);
-        checkDuplicateEmail(user.getEmail());
-        user.setId(userId);
-        userStorage.updateUser(user);
-        return UserMapper.toUserDto(user);
+    public UserDto updateUser(long userId, UserDto userDto) {
+        User foundUser = userStorage.findUserById(userId).orElseThrow(() -> new NotFoundException("User with ID: " + userId + " not found"));
+        checkDuplicateEmail(userDto.getEmail());
+        userDto.setId(userId);
+
+        if (userDto.getName() != null) foundUser.setName(userDto.getName());
+        if (userDto.getEmail() != null) foundUser.setEmail(userDto.getEmail());
+
+        userStorage.updateUser(foundUser);
+        return UserMapper.toUserDto(foundUser);
     }
 
     public void deleteUser(long userId) {
@@ -33,11 +36,8 @@ public class UserService {
     }
 
     public UserDto findUserById(long id) {
-        Optional<User> user = userStorage.findUserById(id);
-        if (user.isEmpty()) {
-            throw new NotFoundException("User with ID: " + id + " not found");
-        }
-        return UserMapper.toUserDto(user.get());
+        User user = userStorage.findUserById(id).orElseThrow(() -> new NotFoundException("User with ID: " + id + " not found"));
+        return UserMapper.toUserDto(user);
     }
 
     private void checkDuplicateEmail(String email) {

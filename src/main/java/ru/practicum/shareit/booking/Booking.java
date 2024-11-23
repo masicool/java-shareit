@@ -9,10 +9,10 @@ import ru.practicum.shareit.user.User;
  */
 @Data
 public class Booking {
-    Long id; // уникальный идентификатор бронирования
-    Long start; // дата и время начала бронирования
-    Long end; // дата и время конца бронирования
-    Item item; // вещь, которую пользователь бронирует
-    User booker; // пользователь, который осуществляет бронирование
-    BookingStatus status; // статус бронирования
+    private Long id; // уникальный идентификатор бронирования
+    private Long start; // дата и время начала бронирования
+    private Long end; // дата и время конца бронирования
+    private Item item; // вещь, которую пользователь бронирует
+    private User booker; // пользователь, который осуществляет бронирование
+    private BookingStatus status; // статус бронирования
 }

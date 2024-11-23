@@ -14,32 +14,32 @@ import java.util.List;
 @RequestMapping("/items")
 @RequiredArgsConstructor
 public class ItemController {
+    private final static String USER_ID_HEADER = "X-Sharer-User-Id";
     private final ItemService itemService;
 
     @PostMapping
-    public ItemDto createItem(@RequestHeader("X-Sharer-User-Id") long userId, @Valid @RequestBody ItemDto itemDto) {
+    public ItemDto createItem(@RequestHeader(USER_ID_HEADER) long userId, @Valid @RequestBody ItemDto itemDto) {
         return itemService.createItem(userId, itemDto);
     }
 
     @PatchMapping("/{itemId}")
-    public ItemDto updateItem(@RequestHeader("X-Sharer-User-Id") long userId, @PathVariable long itemId, @RequestBody ItemDto itemDto) {
+    public ItemDto updateItem(@RequestHeader(USER_ID_HEADER) long userId, @PathVariable long itemId, @RequestBody ItemDto itemDto) {
         return itemService.updateItem(userId, itemId, itemDto);
     }
 
     @GetMapping("/{itemId}")
-    public ItemDto findItemById(@RequestHeader("X-Sharer-User-Id") long userId, @PathVariable long itemId) {
+    public ItemDto findItemById(@RequestHeader(USER_ID_HEADER) long userId, @PathVariable long itemId) {
         return itemService.findItemById(userId, itemId);
     }
 
     @GetMapping
-    public List<ItemDto> findItemById(@RequestHeader("X-Sharer-User-Id") long userId) {
+    public List<ItemDto> findItemById(@RequestHeader(USER_ID_HEADER) long userId) {
         return itemService.findItemsByUserId(userId);
     }
 
     @GetMapping("/search")
-    public List<ItemDto> findByRequest(@RequestHeader(name = "X-Sharer-User-Id", required = false) Long userId,
-                                       @RequestParam(name = "text") String textToFind) {
-        return itemService.findByRequest(textToFind, userId);
+    public List<ItemDto> findByRequest(@RequestParam(name = "text") String textToFind) {
+        return itemService.findByRequest(textToFind);
 
     }
 }

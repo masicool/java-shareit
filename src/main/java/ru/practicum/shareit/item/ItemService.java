@@ -11,7 +11,6 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserStorage;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,17 +27,17 @@ public class ItemService {
 
     public ItemDto updateItem(long userId, long itemId, ItemDto itemDto) {
         findUser(userId);
-        Item findItem = findItem(itemId);
-        if (findItem.getOwner().getId() != userId) {
-            throw new WrongRequestException("User ID: " + userId + " <> item owner with ID: " + findItem.getOwner().getId());
+        Item foundItem = findItem(itemId);
+        if (foundItem.getOwner().getId() != userId) {
+            throw new WrongRequestException("User ID: " + userId + " <> item owner with ID: " + foundItem.getOwner().getId());
         }
 
-        if (itemDto.getName() != null) findItem.setName(itemDto.getName());
-        if (itemDto.getDescription() != null) findItem.setDescription(itemDto.getDescription());
-        if (itemDto.getAvailable() != null) findItem.setAvailable(itemDto.getAvailable());
+        if (itemDto.getName() != null) foundItem.setName(itemDto.getName());
+        if (itemDto.getDescription() != null) foundItem.setDescription(itemDto.getDescription());
+        if (itemDto.getAvailable() != null) foundItem.setAvailable(itemDto.getAvailable());
 
-        itemStorage.updateItem(findItem);
-        return ItemMapper.toItemDto(findItem);
+        itemStorage.updateItem(foundItem);
+        return ItemMapper.toItemDto(foundItem);
     }
 
     public ItemDto findItemById(long userId, long itemId) {
@@ -53,23 +52,17 @@ public class ItemService {
         return itemStorage.findItemsByUserId(userId).stream().map(ItemMapper::toItemDto).toList();
     }
 
-    public List<ItemDto> findByRequest(String textToFind, Long userId) {
-        return itemStorage.findByRequest(textToFind, userId).stream().map(ItemMapper::toItemDto).toList();
+    public List<ItemDto> findByRequest(String textToFind) {
+        if (textToFind.isBlank()) return List.of();
+        return itemStorage.findByRequest(textToFind).stream().map(ItemMapper::toItemDto).toList();
     }
 
     private User findUser(long userId) {
-        Optional<User> user = userStorage.findUserById(userId);
-        if (user.isEmpty()) {
-            throw new NotFoundException("User with ID: " + userId + " not found");
-        }
-        return user.get();
+        return userStorage.findUserById(userId).orElseThrow(() -> new NotFoundException("User with ID: " + userId + " not found"));
+
     }
 
     private Item findItem(long itemId) {
-        Optional<Item> findItem = itemStorage.findItemById(itemId);
-        if (findItem.isEmpty()) {
-            throw new NotFoundException("Item with ID: " + itemId + " not found");
-        }
-        return findItem.get();
+        return itemStorage.findItemById((itemId)).orElseThrow(() -> new NotFoundException("Item with ID: " + itemId + " not found"));
     }
 }
