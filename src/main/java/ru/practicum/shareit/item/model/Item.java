@@ -1,7 +1,9 @@
 package ru.practicum.shareit.item.model;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.experimental.FieldDefaults;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.user.User;
 
@@ -10,11 +12,12 @@ import ru.practicum.shareit.user.User;
  */
 @Data
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Item {
-    private Long id; // уникальный идентификатор вещи
-    private String name; // краткое название
-    private String description; // развёрнутое описание
-    private Boolean available; // статус о том, доступна или нет вещь для аренды
-    private User owner; // владелец вещи
-    private ItemRequest request; // соответствующий запроса на вещь
+    Long id; // уникальный идентификатор вещи
+    String name; // краткое название
+    String description; // развёрнутое описание
+    Boolean available; // статус о том, доступна или нет вещь для аренды
+    User owner; // владелец вещи
+    ItemRequest request; // соответствующий запроса на вещь
 }
