@@ -3,29 +3,35 @@ package ru.practicum.shareit.item.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * TODO Sprint add-controllers.
  */
-@Data
-@AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@Setter
+@Getter
 public class ItemDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    Long id; // id вещи
+    private Long id; // id вещи
 
     @NotBlank(message = "Field 'Name' is empty")
-    String name; // краткое название
+    private String name; // краткое название
 
     @NotBlank(message = "Field 'Description' is empty")
-    String description; // развёрнутое описание
+    private String description; // развёрнутое описание
 
     @NotNull(message = "Field 'available' is null")
-    Boolean available; // статус о том, доступна или нет вещь для аренды
+    private Boolean available; // статус о том, доступна или нет вещь для аренды
 
-    Long request; // id соответствующего запроса на вещь
+    private Long request; // id соответствующего запроса на вещь
+
+    private LocalDateTime lastBooking; // дата последнего бронирования
+
+    private LocalDateTime nextBooking; // дата следующего бронирования
+
+    private List<CommentDto> comments;
 }
