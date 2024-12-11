@@ -24,11 +24,6 @@ public class BookingNewDto {
     @NotNull(message = "Date end should not be null")
     private LocalDateTime end; // дата и время конца бронирования
 
+    @NotNull(message = "Item ID should not be null")
     private Long itemId; // id вещи
-
-    private Item item; // вещь, которую пользователь бронирует
-
-    private User booker; // пользователь, который осуществляет бронирование
-
-    private BookingStatus status; // статус бронирования
 }
