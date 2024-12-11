@@ -1,23 +1,41 @@
 package ru.practicum.shareit.item.model;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
-import ru.practicum.shareit.request.ItemRequest;
-import ru.practicum.shareit.user.User;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.user.model.User;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * TODO Sprint add-controllers.
  */
-@Data
-@AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@Entity
+@Table(name = "items")
+@Getter
+@Setter
 public class Item {
-    Long id; // уникальный идентификатор вещи
-    String name; // краткое название
-    String description; // развёрнутое описание
-    Boolean available; // статус о том, доступна или нет вещь для аренды
-    User owner; // владелец вещи
-    ItemRequest request; // соответствующий запроса на вещь
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // уникальный идентификатор вещи
+
+    private String name; // краткое название
+
+    private String description; // развёрнутое описание
+
+    @Column(name = "is_available", nullable = false)
+    private Boolean available; // статус о том, доступна или нет вещь для аренды
+
+    @ManyToOne
+    @JoinColumn(name = "owner_id")
+    private User owner; // владелец вещи
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "request_id")
+    private ItemRequest request; // соответствующий запроса на вещь
+
+    @Transient
+    private List<Comment> comments = new ArrayList<>();
 }
