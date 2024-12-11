@@ -2,15 +2,13 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.exception.type.NotFoundException;
 import ru.practicum.shareit.exception.type.WrongRequestException;
-import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.CommentMapper;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepository;
@@ -23,12 +21,14 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ItemService {
     public final ItemRepository itemRepository;
     public final UserRepository userRepository;
     public final CommentRepository commentRepository;
     public final BookingRepository bookingRepository;
 
+    @Transactional
     public ItemDto createItem(long userId, ItemDto itemDto) {
         User user = findUser(userId);
         Item item = ItemMapper.toItem(itemDto, user, null);
@@ -36,6 +36,7 @@ public class ItemService {
         return ItemMapper.toItemDto(item);
     }
 
+    @Transactional
     public ItemDto updateItem(long userId, long itemId, ItemDto itemDto) {
         findUser(userId);
         Item foundItem = findItem(itemId);
@@ -52,9 +53,9 @@ public class ItemService {
     }
 
     public ItemDto findItemById(long itemId) {
-        Item findItem = findItem(itemId);
-        findItem.setComments(commentRepository.findAllByItemId(itemId));
-        return ItemMapper.toItemDto(findItem);
+        Item foundItem = findItem(itemId);
+        foundItem.setComments(commentRepository.findAllByItemId(itemId));
+        return ItemMapper.toItemDto(foundItem);
     }
 
     public List<ItemDto> findItemsByUserId(long userId) {
@@ -80,14 +81,15 @@ public class ItemService {
 
     }
 
-    public CommentDto createComment(long authorId, long itemId, String text) {
+    @Transactional
+    public CommentDto createComment(long authorId, long itemId, CommentNewDto commentNewDto) {
         User author = findUser(authorId);
         Item item = findItem(itemId);
         List<Booking> bookings = bookingRepository.findAllByItemIdAndBookerId(itemId, authorId);
         for (Booking booking : bookings) {
             if (booking.getStatus() == BookingStatus.APPROVED && booking.getEnd().isBefore(LocalDateTime.now())) {
                 Comment comment = new Comment();
-                comment.setText(text.trim());
+                comment.setText(commentNewDto.getText().trim());
                 comment.setItem(item);
                 comment.setAuthor(author);
                 comment.setCreated(LocalDateTime.now());

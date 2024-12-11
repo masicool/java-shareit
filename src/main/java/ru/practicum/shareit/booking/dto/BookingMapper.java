@@ -28,10 +28,10 @@ public class BookingMapper {
         return dtos;
     }
 
-    public static Booking toBooking(BookingDto bookingDto, Item item, User booker, BookingStatus status) {
+    public static Booking toBooking(BookingNewDto bookingNewDto, Item item, User booker, BookingStatus status) {
         Booking booking = new Booking();
-        booking.setStart(bookingDto.getStart());
-        booking.setEnd(bookingDto.getEnd());
+        booking.setStart(bookingNewDto.getStart());
+        booking.setEnd(bookingNewDto.getEnd());
         booking.setItem(item);
         booking.setBooker(booker);
         booking.setStatus(status);

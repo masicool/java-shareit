@@ -2,8 +2,10 @@ package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingMapper;
+import ru.practicum.shareit.booking.dto.BookingNewDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.exception.type.NotFoundException;
 import ru.practicum.shareit.exception.type.WrongRequestException;
@@ -18,37 +20,43 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BookingService {
     public final ItemRepository itemRepository;
     public final UserRepository userRepository;
     public final BookingRepository bookingRepository;
 
-    public BookingDto createBooking(long bookerId, BookingDto bookingDto) {
+    @Transactional
+    public BookingDto createBooking(long bookerId, BookingNewDto bookingNewDto) {
         User booker = getUser(bookerId);
-        Item item = getItem(bookingDto.getItemId());
+        Item item = getItem(bookingNewDto.getItemId());
 
-        if (bookingDto.getStart().equals(bookingDto.getEnd()))
+        if (bookingNewDto.getStart().equals(bookingNewDto.getEnd()))
             throw new WrongRequestException("Date end equals date start");
 
         if (!item.getAvailable())
             throw new WrongRequestException("Item with ID: " + item.getId() + " is not available");
 
         List<Booking> bookings = bookingRepository.findAllWithIntersectionDates(item.getId(),
-                Set.of(BookingStatus.WAITING, BookingStatus.APPROVED), bookingDto.getStart(), bookingDto.getEnd());
+                Set.of(BookingStatus.APPROVED), bookingNewDto.getStart(), bookingNewDto.getEnd());
 
         if (!bookings.isEmpty()) throw new WrongRequestException("Interval intersects with the existing ones");
 
-        Booking booking = BookingMapper.toBooking(bookingDto, item, booker, BookingStatus.WAITING);
+        Booking booking = BookingMapper.toBooking(bookingNewDto, item, booker, BookingStatus.WAITING);
 
         return BookingMapper.toBookingDto(bookingRepository.save(booking));
     }
 
+    @Transactional
     public BookingDto updateBooking(long ownerId, long bookingId, boolean approved) {
         Booking booking = getBooking(bookingId);
         Item item = getItem(booking.getItem().getId());
 
         if (item.getOwner().getId() != ownerId)
-            throw new WrongRequestException("Item does not belong to the owner with ID:" + ownerId);
+            throw new WrongRequestException("Item does not belong to the owner with ID: " + ownerId);
+
+        if (booking.getStatus() != BookingStatus.WAITING)
+            throw new WrongRequestException("Item status is not WAITING");
 
         if (approved) {
             booking.setStatus(BookingStatus.APPROVED);

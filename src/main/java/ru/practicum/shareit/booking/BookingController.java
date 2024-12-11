@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingNewDto;
 
 import java.util.List;
 
@@ -39,8 +40,8 @@ public class BookingController {
 
     @PostMapping
     public BookingDto createBooking(@RequestHeader(USER_ID_HEADER) long bookerId,
-                                    @Valid @RequestBody BookingDto bookingDto) {
-        return bookingService.createBooking(bookerId, bookingDto);
+                                    @Valid @RequestBody BookingNewDto bookingNewDto) {
+        return bookingService.createBooking(bookerId, bookingNewDto);
     }
 
     @PatchMapping("/{bookingId}")

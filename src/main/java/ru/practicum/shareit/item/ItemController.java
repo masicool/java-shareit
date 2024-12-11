@@ -52,6 +52,6 @@ public class ItemController {
     public CommentDto createComment(@RequestHeader(USER_ID_HEADER) long authorId,
                                     @PathVariable long itemId,
                                     @RequestBody CommentNewDto commentNew) {
-        return itemService.createComment(authorId, itemId, commentNew.getText());
+        return itemService.createComment(authorId, itemId, commentNew);
     }
 }
