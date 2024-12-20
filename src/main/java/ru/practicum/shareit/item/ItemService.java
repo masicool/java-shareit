@@ -88,11 +88,7 @@ public class ItemService {
         List<Booking> bookings = bookingRepository.findAllByItemIdAndBookerId(itemId, authorId);
         for (Booking booking : bookings) {
             if (booking.getStatus() == BookingStatus.APPROVED && booking.getEnd().isBefore(LocalDateTime.now())) {
-                Comment comment = new Comment();
-                comment.setText(commentNewDto.getText().trim());
-                comment.setItem(item);
-                comment.setAuthor(author);
-                comment.setCreated(LocalDateTime.now());
+                Comment comment = CommentMapper.toNewComment(commentNewDto.getText(), item, author);
                 commentRepository.save(comment);
                 return CommentMapper.toCommentDto(comment);
             }

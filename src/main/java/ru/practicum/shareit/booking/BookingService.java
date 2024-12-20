@@ -106,14 +106,10 @@ public class BookingService {
     }
 
     public BookingDto findBookingByIdAndBookerIdOrOwnerId(long bookingId, long userId) {
-        Booking booking = getBooking(bookingId);
-        long bookerId = booking.getBooker().getId();
-        long ownerId = booking.getItem().getOwner().getId();
-
-        if (bookerId != userId && ownerId != userId)
-            throw new NotFoundException("Booking with ID: " + bookingId + " for user with ID: " + userId + " not found");
-
-        return BookingMapper.toBookingDto(booking);
+        return bookingRepository.findById(bookingId)
+                .filter(b -> b.getBooker().getId() == userId || b.getItem().getOwner().getId() == userId)
+                .map(BookingMapper::toBookingDto)
+                .orElseThrow(() -> new NotFoundException("Booking with ID: " + bookingId + " for user with ID: " + userId + " not found"));
     }
 
     private Booking getBooking(long bookingId) {
@@ -128,6 +124,7 @@ public class BookingService {
     }
 
     private User getUser(long userId) {
-        return userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User with ID: " + userId + " not found"));
+        return userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User with ID: " + userId +
+                " not found"));
     }
 }
