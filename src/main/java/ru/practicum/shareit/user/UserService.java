@@ -2,47 +2,47 @@ package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exception.type.DuplicateException;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.type.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
+import ru.practicum.shareit.user.model.User;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserService {
-    private final UserStorage userStorage;
+    private final UserRepository userRepository;
 
+    @Transactional
     public UserDto createUser(UserDto userDto) {
-        checkDuplicateEmail(userDto.getEmail());
         User user = UserMapper.toUser(userDto);
-        userStorage.createUser(user);
+        userRepository.save(user);
         return UserMapper.toUserDto(user);
     }
 
+    @Transactional
     public UserDto updateUser(long userId, UserDto userDto) {
-        User foundUser = userStorage.findUserById(userId).orElseThrow(() -> new NotFoundException("User with ID: " + userId + " not found"));
-        checkDuplicateEmail(userDto.getEmail());
-        userDto.setId(userId);
+        User foundUser = findUser(userId);
 
         if (userDto.getName() != null) foundUser.setName(userDto.getName());
         if (userDto.getEmail() != null) foundUser.setEmail(userDto.getEmail());
 
-        userStorage.updateUser(foundUser);
+        userRepository.save(foundUser);
         return UserMapper.toUserDto(foundUser);
     }
 
+    @Transactional
     public void deleteUser(long userId) {
-        userStorage.deleteUser(userId);
+        userRepository.deleteById(userId);
     }
 
-    public UserDto findUserById(long id) {
-        User user = userStorage.findUserById(id).orElseThrow(() -> new NotFoundException("User with ID: " + id + " not found"));
+    public UserDto findUserById(long userId) {
+        User user = findUser(userId);
         return UserMapper.toUserDto(user);
     }
 
-    private void checkDuplicateEmail(String email) {
-        if (userStorage.findUserByEmail(email).isPresent()) {
-            throw new DuplicateException("Email: " + email + " already exist");
-        }
+    private User findUser(long userId) {
+        return userRepository.findById(userId).orElseThrow(() -> new NotFoundException("User with ID: " + userId + " not found"));
     }
 }
