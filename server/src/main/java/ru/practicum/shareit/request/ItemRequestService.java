@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.type.NotFoundException;
 import ru.practicum.shareit.item.ItemRepository;
+import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestMapper;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ItemRequestService {
     private final ItemRequestRepository itemRequestRepository;
     private final UserRepository userRepository;
@@ -33,17 +35,17 @@ public class ItemRequestService {
     }
 
     public List<ItemRequestDto> findItemRequestsByUserId(long userId, boolean isOtherUsers) {
-        List<ItemRequest> itemRequests;
+        List<ItemRequestDto> itemRequestDtos;
 
         if (isOtherUsers) {
             // найдем все запросы других пользователей, отсортированных от более новых к более старым
-            itemRequests = itemRequestRepository.findByRequestorIdNotOrderByCreatedDesc(userId);
+            itemRequestDtos = ItemRequestMapper.toItemRequestDto(itemRequestRepository.findByRequestorIdNotOrderByCreatedDesc(userId));
         } else {
             // найдем все запросы пользователя, отсортированные от более новых к более старым
-            itemRequests = itemRequestRepository.findAllByRequestorIdOrderByCreatedDesc(userId);
+            itemRequestDtos = ItemRequestMapper.toItemRequestDto(itemRequestRepository.findAllByRequestorIdOrderByCreatedDesc(userId));
         }
         // получим список ID этих запросов
-        List<Long> itemRequestIds = itemRequests.stream().map(ItemRequest::getId).toList();
+        List<Long> itemRequestIds = itemRequestDtos.stream().map(ItemRequestDto::getId).toList();
 
         // получим список вещей, созданных по запросам пользователя, используя список ID этих запросов
         Map<Long, List<Item>> itemsMap = itemRepository.findAllByRequestIdIn(itemRequestIds)
@@ -51,21 +53,21 @@ public class ItemRequestService {
                 .collect(Collectors.groupingBy(o -> o.getRequest().getId()));
 
         // заполним список созданных вещей по каждому запросу
-        for (ItemRequest itemRequest : itemRequests) {
-            itemRequest.setItems(itemsMap.getOrDefault(itemRequest.getId(), List.of()));
+        for (ItemRequestDto itemRequestDto : itemRequestDtos) {
+            itemRequestDto.setItems(ItemMapper.itemsToResponse(itemsMap.getOrDefault(itemRequestDto.getId(), List.of())));
         }
 
-        return itemRequests.stream().map(ItemRequestMapper::toItemRequestDto).toList();
+        return itemRequestDtos;
     }
 
     public ItemRequestDto findItemRequestById(long requestId) {
-        ItemRequest itemRequest = itemRequestRepository.findById(requestId)
-                .orElseThrow(() -> new NotFoundException("Item request with ID: " + requestId + " not found"));
+        ItemRequestDto itemRequestDto = ItemRequestMapper.toItemRequestDto(itemRequestRepository.findById(requestId)
+                .orElseThrow(() -> new NotFoundException("Item request with ID: " + requestId + " not found")));
 
         // получим список вещей, созданных по запросу
         List<Item> items = itemRepository.findAllByRequestIdIn(List.of(requestId));
-        itemRequest.setItems(items);
+        itemRequestDto.setItems(ItemMapper.itemsToResponse(items));
 
-        return ItemRequestMapper.toItemRequestDto(itemRequest);
+        return itemRequestDto;
     }
 }

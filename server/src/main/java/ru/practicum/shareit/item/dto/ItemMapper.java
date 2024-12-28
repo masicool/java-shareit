@@ -15,7 +15,7 @@ public class ItemMapper {
                 .description(item.getDescription())
                 .available(item.getAvailable())
                 .requestId(item.getRequest() != null ? item.getRequest().getId() : null)
-                .comments(item.getComments() != null ? CommentMapper.toCommentDto(item.getComments()) : List.of())
+                .comments(List.of())
                 .build();
     }
 
@@ -36,5 +36,17 @@ public class ItemMapper {
                 .owner(owner)
                 .request(itemRequest)
                 .build();
+    }
+
+    public static List<ItemForResponseDto> itemsToResponse(List<Item> items) {
+        if (items == null) return List.of();
+
+        List<ItemForResponseDto> itemForResponseDtos = new ArrayList<>();
+        for (Item item : items) {
+            if (item != null) {
+                itemForResponseDtos.add(new ItemForResponseDto(item.getId(), item.getName(), item.getOwner().getId()));
+            }
+        }
+        return itemForResponseDtos;
     }
 }

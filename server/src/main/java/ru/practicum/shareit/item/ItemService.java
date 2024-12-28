@@ -17,9 +17,12 @@ import ru.practicum.shareit.user.UserRepository;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static ru.practicum.shareit.item.dto.ItemMapper.toItemDto;
 
 @Service
 @RequiredArgsConstructor
@@ -34,11 +37,18 @@ public class ItemService {
     @Transactional
     public ItemDto createItem(long userId, ItemDto itemDto) {
         User user = findUser(userId);
-        ItemRequest itemRequest = findItemRequest(itemDto.getRequestId());
-        Item item = ItemMapper.toItem(itemDto, user, itemRequest);
+        ItemRequest itemRequest;
+        Item item;
+
+        if (itemDto.getRequestId() == null) {
+            item = ItemMapper.toItem(itemDto, user, null);
+        } else {
+            itemRequest = findItemRequest(itemDto.getRequestId());
+            item = ItemMapper.toItem(itemDto, user, itemRequest);
+        }
 
         itemRepository.save(item);
-        return ItemMapper.toItemDto(item);
+        return toItemDto(item);
     }
 
     @Transactional
@@ -55,30 +65,36 @@ public class ItemService {
         if (itemDto.getRequestId() != null) foundItem.setRequest(findItemRequest(itemDto.getRequestId()));
 
         itemRepository.save(foundItem);
-        return ItemMapper.toItemDto(foundItem);
+        return toItemDto(foundItem);
     }
 
     public ItemDto findItemById(long itemId) {
-        Item foundItem = findItem(itemId);
-        foundItem.setComments(commentRepository.findAllByItemId(itemId));
-        return ItemMapper.toItemDto(foundItem);
+        ItemDto foundItem = toItemDto(findItem(itemId));
+        List<Comment> comments = commentRepository.findAllByItemId(itemId);
+        foundItem.setComments(CommentMapper.toCommentDto(comments));
+        return foundItem;
     }
 
     public List<ItemDto> findItemsByUserId(long userId) {
         // найдем все вещи пользователя
-        List<Item> items = itemRepository.findByOwnerId(userId);
-        List<Long> itemIds = items.stream().map(Item::getId).toList();
+        List<ItemDto> itemDtos = toItemDto(itemRepository.findByOwnerId(userId));
+        List<Long> itemIds = itemDtos.stream().map(ItemDto::getId).toList();
 
         // получим отзывы по всем вещам из списка id вещей
         Map<Long, List<Comment>> commentsMap = commentRepository.findAllByItemIdIn(itemIds)
                 .stream()
                 .collect(Collectors.groupingBy(o -> o.getItem().getId()));
 
-        for (Item item : items) {
-            item.setComments(commentsMap.getOrDefault(item.getId(), List.of()));
+        List<ItemDto> itemsWithComments = new ArrayList<>();
+        for (ItemDto itemDto : itemDtos) {
+            List<Comment> comments = commentsMap.get(itemDto.getId());
+
+            if (comments != null) itemDto.setComments(CommentMapper.toCommentDto(comments));
+
+            itemsWithComments.add(itemDto);
         }
 
-        return items.stream().map(ItemMapper::toItemDto).toList();
+        return itemsWithComments;
     }
 
     public List<ItemDto> findByRequest(String textToFind) {
@@ -111,7 +127,6 @@ public class ItemService {
     }
 
     private ItemRequest findItemRequest(Long itemRequestId) {
-        if (itemRequestId == null) return null;
 
         return itemRequestRepository.findById(itemRequestId).orElseThrow(() ->
                 new NotFoundException("Item request with ID : " + itemRequestId + " not found"));

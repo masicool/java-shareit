@@ -59,7 +59,6 @@ public class ItemRequestServiceIntegrationTest {
 
         itemRequestDto = ItemRequestDto.builder()
                 .description(itemRequestNewDto.getDescription())
-//                .items(List.of(new ItemForResponseDto(item.getId(), item.getName(), user.getId())))
                 .items(List.of())
                 .build();
     }

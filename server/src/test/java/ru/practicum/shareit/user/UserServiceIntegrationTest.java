@@ -114,15 +114,9 @@ public class UserServiceIntegrationTest {
         UserDto userDto = makeUserDto("user1", "email1@mail.ru");
         userDto.setId(userService.createUser(userDto).getId());
 
-        TypedQuery<User> query = em.createQuery("from User u where u.id = :id", User.class);
-
-        User user = query
-                .setParameter("id", userDto.getId())
-                .getSingleResult();
-
         userService.deleteUser(userDto.getId());
 
-        query = em.createQuery("from User u where u.id = :id", User.class);
+        TypedQuery<User> query = em.createQuery("from User u where u.id = :id", User.class);
         List<User> users = query.setParameter("id", userDto.getId()).getResultList();
         assertThat(users.size(), equalTo(0));
     }

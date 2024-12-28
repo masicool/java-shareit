@@ -51,7 +51,6 @@ public class BookingControllerMvcTest {
                 .name("item1")
                 .description("description1")
                 .available(true)
-                .comments(List.of())
                 .build();
 
         bookingDto = BookingDto.builder()

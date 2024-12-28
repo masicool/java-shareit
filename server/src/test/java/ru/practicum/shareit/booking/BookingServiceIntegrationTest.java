@@ -53,7 +53,6 @@ public class BookingServiceIntegrationTest {
                 .description("description1")
                 .available(true)
                 .owner(user)
-                .comments(List.of())
                 .build();
 
         em.persist(item);
@@ -175,36 +174,48 @@ public class BookingServiceIntegrationTest {
 
         // Booking state - CURRENT
         bookingDtos = bookingService.findBookingsByBookerIdAndState(user.getId(), BookingState.CURRENT);
-        query = em.createQuery("from Booking b where b.booker.id = :id", Booking.class);
+        query = em.createQuery("from Booking b where b.booker.id = :id and b.end > :dt and b.status = :status", Booking.class);
         foundBookingDtos = query.setParameter("id", user.getId())
+                .setParameter("dt", LocalDateTime.now())
+                .setParameter("status", BookingStatus.APPROVED)
                 .getResultList().stream().map(BookingMapper::toBookingDto).toList();
         assertThat(bookingDtos.size(), equalTo(0));
+        assertThat(foundBookingDtos.size(), equalTo(0));
 
         // Booking state - PAST
         bookingDtos = bookingService.findBookingsByBookerIdAndState(user.getId(), BookingState.PAST);
-        query = em.createQuery("from Booking b where b.booker.id = :id", Booking.class);
+        query = em.createQuery("from Booking b where b.booker.id = :id and b.end < :dt and b.status = :status", Booking.class);
         foundBookingDtos = query.setParameter("id", user.getId())
+                .setParameter("dt", LocalDateTime.now())
+                .setParameter("status", BookingStatus.APPROVED)
                 .getResultList().stream().map(BookingMapper::toBookingDto).toList();
         assertThat(bookingDtos.size(), equalTo(0));
+        assertThat(foundBookingDtos.size(), equalTo(0));
 
         // Booking state - FUTURE
         bookingDtos = bookingService.findBookingsByBookerIdAndState(user.getId(), BookingState.FUTURE);
-        query = em.createQuery("from Booking b where b.booker.id = :id", Booking.class);
+        query = em.createQuery("from Booking b where b.booker.id = :id and b.start > :dt and b.status = :status", Booking.class);
         foundBookingDtos = query.setParameter("id", user.getId())
+                .setParameter("dt", LocalDateTime.now())
+                .setParameter("status", BookingStatus.APPROVED)
                 .getResultList().stream().map(BookingMapper::toBookingDto).toList();
         assertThat(bookingDtos.size(), equalTo(0));
+        assertThat(foundBookingDtos.size(), equalTo(0));
 
         // Booking state - REJECTED
         bookingDtos = bookingService.findBookingsByBookerIdAndState(user.getId(), BookingState.REJECTED);
-        query = em.createQuery("from Booking b where b.booker.id = :id", Booking.class);
+        query = em.createQuery("from Booking b where b.booker.id = :id and b.status = :status", Booking.class);
         foundBookingDtos = query.setParameter("id", user.getId())
+                .setParameter("status", BookingStatus.REJECTED)
                 .getResultList().stream().map(BookingMapper::toBookingDto).toList();
         assertThat(bookingDtos.size(), equalTo(0));
+        assertThat(foundBookingDtos.size(), equalTo(0));
 
         // Booking state - WAITING
         bookingDtos = bookingService.findBookingsByBookerIdAndState(user.getId(), BookingState.WAITING);
-        query = em.createQuery("from Booking b where b.booker.id = :id", Booking.class);
+        query = em.createQuery("from Booking b where b.booker.id = :id and b.status = :status", Booking.class);
         foundBookingDtos = query.setParameter("id", user.getId())
+                .setParameter("status", BookingStatus.WAITING)
                 .getResultList().stream().map(BookingMapper::toBookingDto).toList();
         assertThat(bookingDtos.size(), equalTo(1));
         assertThat(bookingDtos.getFirst().getId(), notNullValue());
@@ -226,36 +237,48 @@ public class BookingServiceIntegrationTest {
 
         // Booking state - PAST
         bookingDtos = bookingService.findBookingsByOwnerIdAndSate(user.getId(), BookingState.PAST);
-        query = em.createQuery("from Booking b where b.item.owner.id = :id", Booking.class);
+        query = em.createQuery("from Booking b where b.item.owner.id = :id and b.end < :dt and b.status = :status", Booking.class);
         foundBookingDtos = query.setParameter("id", user.getId())
+                .setParameter("dt", LocalDateTime.now())
+                .setParameter("status", BookingStatus.APPROVED)
                 .getResultList().stream().map(BookingMapper::toBookingDto).toList();
         assertThat(bookingDtos.size(), equalTo(0));
+        assertThat(foundBookingDtos.size(), equalTo(0));
 
         // Booking state - CURRENT
         bookingDtos = bookingService.findBookingsByOwnerIdAndSate(user.getId(), BookingState.CURRENT);
-        query = em.createQuery("from Booking b where b.item.owner.id = :id", Booking.class);
+        query = em.createQuery("from Booking b where b.item.owner.id = :id and b.end > :dt and b.status = :status", Booking.class);
         foundBookingDtos = query.setParameter("id", user.getId())
+                .setParameter("dt", LocalDateTime.now())
+                .setParameter("status", BookingStatus.APPROVED)
                 .getResultList().stream().map(BookingMapper::toBookingDto).toList();
         assertThat(bookingDtos.size(), equalTo(0));
+        assertThat(foundBookingDtos.size(), equalTo(0));
 
         // Booking state - FUTURE
         bookingDtos = bookingService.findBookingsByOwnerIdAndSate(user.getId(), BookingState.FUTURE);
-        query = em.createQuery("from Booking b where b.item.owner.id = :id", Booking.class);
+        query = em.createQuery("from Booking b where b.item.owner.id = :id and b.start > :dt and b.status = :status", Booking.class);
         foundBookingDtos = query.setParameter("id", user.getId())
+                .setParameter("dt", LocalDateTime.now())
+                .setParameter("status", BookingStatus.APPROVED)
                 .getResultList().stream().map(BookingMapper::toBookingDto).toList();
         assertThat(bookingDtos.size(), equalTo(0));
+        assertThat(foundBookingDtos.size(), equalTo(0));
 
         // Booking state - REJECTED
         bookingDtos = bookingService.findBookingsByOwnerIdAndSate(user.getId(), BookingState.REJECTED);
-        query = em.createQuery("from Booking b where b.item.owner.id = :id", Booking.class);
+        query = em.createQuery("from Booking b where b.item.owner.id = :id and b.status = :status", Booking.class);
         foundBookingDtos = query.setParameter("id", user.getId())
+                .setParameter("status", BookingStatus.REJECTED)
                 .getResultList().stream().map(BookingMapper::toBookingDto).toList();
         assertThat(bookingDtos.size(), equalTo(0));
+        assertThat(foundBookingDtos.size(), equalTo(0));
 
         // Booking state - WAITING
         bookingDtos = bookingService.findBookingsByOwnerIdAndSate(user.getId(), BookingState.WAITING);
-        query = em.createQuery("from Booking b where b.item.owner.id = :id", Booking.class);
+        query = em.createQuery("from Booking b where b.item.owner.id = :id and b.status = :status", Booking.class);
         foundBookingDtos = query.setParameter("id", user.getId())
+                .setParameter("status", BookingStatus.WAITING)
                 .getResultList().stream().map(BookingMapper::toBookingDto).toList();
         assertThat(bookingDtos.size(), equalTo(1));
         assertThat(bookingDtos.getFirst().getId(), notNullValue());

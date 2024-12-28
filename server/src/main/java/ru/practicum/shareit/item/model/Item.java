@@ -5,8 +5,6 @@ import lombok.*;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
-import java.util.List;
-
 @Entity
 @Table(name = "items")
 @Getter
@@ -33,7 +31,4 @@ public class Item {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "request_id")
     private ItemRequest request; // соответствующий запроса на вещь
-
-    @Transient
-    private List<Comment> comments;
 }

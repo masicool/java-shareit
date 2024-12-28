@@ -10,10 +10,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.exception.type.NotFoundException;
 import ru.practicum.shareit.exception.type.WrongRequestException;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
@@ -64,6 +66,35 @@ public class ItemServiceIntegrationTest {
         assertThat(itemDtos.size(), equalTo(1));
         assertThat(itemDtos.getFirst().getId(), notNullValue());
         assertThat(itemDtos, hasItem(itemDto));
+    }
+
+    @Test
+    void createItemForItemRequestTest() {
+        ItemRequest itemRequest = ItemRequest.builder()
+                .created(LocalDateTime.now())
+                .description("item request")
+                .requestor(user)
+                .build();
+
+        em.persist(itemRequest);
+        em.flush();
+
+        itemDto.setRequestId(itemRequest.getId());
+        ItemDto createdItemDto = itemService.createItem(user.getId(), itemDto);
+        itemDto.setId(createdItemDto.getId());
+
+        TypedQuery<Item> query = em.createQuery("from Item", Item.class);
+        List<ItemDto> itemDtos = query.getResultList().stream().map(ItemMapper::toItemDto).toList();
+
+        assertThat(itemDtos.size(), equalTo(1));
+        assertThat(itemDtos.getFirst().getId(), notNullValue());
+        assertThat(itemDtos, hasItem(itemDto));
+    }
+
+    @Test
+    void createItemForInvalidItemRequestTest() {
+        itemDto.setRequestId(Long.MAX_VALUE);
+        assertThrows(NotFoundException.class, () -> itemService.createItem(user.getId(), itemDto));
     }
 
     @Test
